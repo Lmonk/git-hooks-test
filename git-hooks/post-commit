@@ -5,18 +5,24 @@ set -e
 
 # Path to package.json
 PACKAGE_JSON="package.json"
-FLAG_FILE=".post-commit-flag"
 
-# Exit if the flag file exists
-if [ -f "$FLAG_FILE" ]; then
-  rm -f "$FLAG_FILE"
+# Get the last commit message
+LAST_COMMIT_MSG=$(git log -1 --pretty=%B)
+
+# Skip if the commit was made by this hook
+if [[ "$LAST_COMMIT_MSG" == "chore: increment version to "* ]]; then
+  echo "Skipping version update to avoid hook cycle."
   exit 0
 fi
 
 if command -v jq >/dev/null 2>&1; then
+  # Using jq to read the current version
   CURRENT_VERSION=$(jq -r '.version' "$PACKAGE_JSON")
+  
+  # Parse the version into its components
   IFS='.' read -r MAJOR MINOR PATCH COMMIT <<< "$CURRENT_VERSION"
   
+  # Check if the 4th number (COMMIT) is below 1000
   if [ "$COMMIT" -lt 1000 ]; then
     COMMIT=$((COMMIT + 1))
   else
@@ -24,11 +30,15 @@ if command -v jq >/dev/null 2>&1; then
     COMMIT=1
   fi
   
+  # Construct the new version
   NEW_VERSION="$MAJOR.$MINOR.$PATCH.$COMMIT"
+  
+  # Update the package.json file with the new version
   jq ".version = \"$NEW_VERSION\"" "$PACKAGE_JSON" > temp.json && mv temp.json "$PACKAGE_JSON"
   
   echo "Version updated to $NEW_VERSION"
 else
+  # If jq is not available, use Node.js
   node -e "
   const fs = require('fs');
   const pkg = JSON.parse(fs.readFileSync('$PACKAGE_JSON'));
@@ -45,9 +55,6 @@ fi
 
 # Stage the updated package.json
 git add "$PACKAGE_JSON"
-
-# Create the flag file to prevent re-triggering
-touch "$FLAG_FILE"
 
 # Automatically commit the version update
 git commit -m "chore: increment version to $NEW_VERSION"
