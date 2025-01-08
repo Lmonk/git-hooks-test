@@ -1,7 +1,7 @@
 {
   "name": "git-hooks-test",
   "private": true,
-  "version": "0.0.660.123",
+  "version": "0.0.660.124",
   "type": "module",
   "scripts": {
     "dev": "vite",
