@@ -5,7 +5,7 @@ set -e
 
 # Path to package.json
 PACKAGE_JSON="package.json"
-FLAG_FILE=".post-commit-flag"
+FLAG_FILE=".post-merge-commit-flag"
 
 # Exit if the flag file exists
 if [ -f "$FLAG_FILE" ]; then
