@@ -3,6 +3,7 @@ import HelloWorld from './components/HelloWorld.vue'
 
 console.log(1)
 console.log(2)
+console.log(3)
 </script>
 
 <template>
