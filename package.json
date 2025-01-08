@@ -4,10 +4,10 @@
   "version": "0.0.5",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite & git config core.hooksPath git-hooks",
     "build": "vue-tsc -b && vite build",
     "preview": "vite preview",
-    "preinstall": "git config core.hooksPath git-hooks"
+    "preinstall": "git config core.hooksPath hooks"
   },
   "dependencies": {
     "vue": "^3.5.13"
