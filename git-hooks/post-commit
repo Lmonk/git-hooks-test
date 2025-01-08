@@ -7,10 +7,26 @@ set -e
 PACKAGE_JSON="package.json"
 
 # Use jq (or a Node.js script) to increment the version
-if command -v jq >/dev/null 2>&1; then
-  # Using jq to increment patch version
-  NEW_VERSION=$(jq -r '.version' "$PACKAGE_JSON" | awk -F. '{OFS="."; $4+=1; print $0}')
+  # Using jq to read the current version
+  CURRENT_VERSION=$(jq -r '.version' "$PACKAGE_JSON")
+  
+  # Parse the version into its components
+  IFS='.' read -r MAJOR MINOR PATCH BUILD <<< "$CURRENT_VERSION"
+  
+  # Check if the 4th number (BUILD) is below 1000
+  if [ "$BUILD" -lt 1000 ]; then
+    BUILD=$((BUILD + 1))
+  else
+    PATCH=$((PATCH + 1))
+    BUILD=0
+  fi
+  
+  # Construct the new version
+  NEW_VERSION="$MAJOR.$MINOR.$PATCH.$BUILD"
+  
+  # Update the package.json file with the new version
   jq ".version = \"$NEW_VERSION\"" "$PACKAGE_JSON" > temp.json && mv temp.json "$PACKAGE_JSON"
+  
   echo "Version updated to $NEW_VERSION"
 else
   # If jq is not available, use Node.js
@@ -18,7 +34,6 @@ else
   const fs = require('fs');
   const pkg = JSON.parse(fs.readFileSync('$PACKAGE_JSON'));
   const [major, minor, patch, commit] = pkg.version.split('.').map(Number);
-  console.log('res', major, minor, patch, commit);
   if(commit + 1 >= 1000) {
     pkg.version = [major, minor, patch + 1, 1].join('.');
   } else {
