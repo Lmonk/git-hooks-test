@@ -6,6 +6,7 @@ set -e
 # Path to package.json
 PACKAGE_JSON="package.json"
 
+if command -v jq >/dev/null 2>&1; then
 # Use jq (or a Node.js script) to increment the version
   # Using jq to read the current version
   CURRENT_VERSION=$(jq -r '.version' "$PACKAGE_JSON")
