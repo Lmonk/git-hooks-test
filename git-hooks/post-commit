@@ -9,7 +9,7 @@ PACKAGE_JSON="package.json"
 # Use jq (or a Node.js script) to increment the version
 if command -v jq >/dev/null 2>&1; then
   # Using jq to increment patch version
-  NEW_VERSION=$(jq -r '.version' "$PACKAGE_JSON" | awk -F. '{OFS="."; $3+=1; print $0}')
+  NEW_VERSION=$(jq -r '.version' "$PACKAGE_JSON" | awk -F. '{OFS="."; $4+=1; print $0}')
   jq ".version = \"$NEW_VERSION\"" "$PACKAGE_JSON" > temp.json && mv temp.json "$PACKAGE_JSON"
   echo "Version updated to $NEW_VERSION"
 else
