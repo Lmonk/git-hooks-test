@@ -1,38 +1,44 @@
-# #!/bin/bash
+#!/bin/sh
+#
+# An example hook script to verify what is about to be committed.
+# Called by "git commit" with no arguments.  The hook should
+# exit with non-zero status after issuing an appropriate message if
+# it wants to stop the commit.
+#
+# To enable this hook, rename this file to "pre-commit".
 
-# # Ensure the script exits on any error
-# set -e
+#!/bin/bash
 
-# # Path to package.json
-# PACKAGE_JSON="package.json"
+# Ensure the script exits on any error
+set -e
 
-# # Use jq (or a Node.js script) to increment the version
-# if command -v jq >/dev/null 2>&1; then
-#   # Using jq to increment patch version
-#   NEW_VERSION=$(jq -r '.version' "$PACKAGE_JSON" | awk -F. '{OFS="."; $3+=1; print $0}')
-#   jq ".version = \"$NEW_VERSION\"" "$PACKAGE_JSON" > temp.json && mv temp.json "$PACKAGE_JSON"
-#   echo "Version updated to $NEW_VERSION"
-# else
-#   # If jq is not available, use Node.js
-#   node -e "
-#   const fs = require('fs');
-#   const pkg = JSON.parse(fs.readFileSync('$PACKAGE_JSON'));
-#   const [major, minor, patch, commit] = pkg.version.split('.').map(Number);
-#   console.log('res', major, minor, patch, commit);
-#   if(commit + 1 >= 1000) {
-#     pkg.version = [major, minor, patch + 1, 1].join('.');
-#   } else {
-#     pkg.version = [major, minor, patch, commit + 1].join('.');
-#   }
-#   fs.writeFileSync('$PACKAGE_JSON', JSON.stringify(pkg, null, 2) + '\n');
-#   console.log('Version updated to', pkg.version);
-#   "
-# fi
+# Path to package.json
+PACKAGE_JSON="package.json"
 
-# # Stage the updated package.json
-# git add "$PACKAGE_JSON"
+# Use jq (or a Node.js script) to increment the version
+if command -v jq >/dev/null 2>&1; then
+  # Using jq to increment patch version
+  NEW_VERSION=$(jq -r '.version' "$PACKAGE_JSON" | awk -F. '{OFS="."; $3+=1; print $0}')
+  jq ".version = \"$NEW_VERSION\"" "$PACKAGE_JSON" > temp.json && mv temp.json "$PACKAGE_JSON"
+  echo "Version updated to $NEW_VERSION"
+else
+  # If jq is not available, use Node.js
+  node -e "
+  const fs = require('fs');
+  const pkg = JSON.parse(fs.readFileSync('$PACKAGE_JSON'));
+  const [major, minor, patch, commit] = pkg.version.split('.').map(Number);
+  console.log(commit)
+  if(commit + 1 >= 1000) {
+    pkg.version = [major, minor, patch + 1, 1].join('.');
+  } else {
+    pkg.version = [major, minor, patch, commit + 1].join('.');
+  }
+  fs.writeFileSync('$PACKAGE_JSON', JSON.stringify(pkg, null, 2) + '\n');
+  console.log('Version updated to', pkg.version);
+  "
+fi
 
-# # Automatically commit the version update
-# git commit -m "chore: increment version to $NEW_VERSION"
+# Stage the updated package.json
+git add "$PACKAGE_JSON"
 
-# echo "package.json updated and committed after successful commit."
+echo "package.json updated and staged."
